@@ -1,0 +1,362 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #181818;
+    color: #f5f5f5;
+    min-height: 100vh;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #232323;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.7rem;
+    font-weight: bold;
+    color: #ffcc00;
+    letter-spacing: 1px;
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.select, .search {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+}
+
+.select {
+    background: #333;
+    color: #ffcc00;
+}
+
+.search {
+    background: #222;
+    color: #fff;
+    width: 220px;
+}
+
+.theme-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #ffcc00;
+    margin-left: 0.5rem;
+    transition: transform 0.3s;
+}
+
+.theme-toggle:hover {
+    transform: rotate(30deg);
+}
+
+main {
+    padding: 2rem 5vw;
+}
+
+.content-section {
+    margin-top: 2rem;
+}
+
+h2 {
+    color: #ffcc00;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 2rem;
+}
+
+.card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    justify-items: center;
+}
+
+.item {
+    background: #232323;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    transition: transform 0.3s, box-shadow 0.3s;
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(255,204,0,0.2);
+}
+
+.item img {
+    width: 100%;
+    height: 380px;
+    object-fit: cover;
+    border-bottom: 3px solid #ffcc00;
+}
+
+.item-info {
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.item h3 {
+    margin: 0 0 0.8rem 0;
+    font-size: 1.3rem;
+    color: #ffcc00;
+    text-align: center;
+}
+
+.item p {
+    margin: 0.5rem 0;
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.item p.year {
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.item p.description {
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-buttons {
+    margin-top: auto;
+    display: flex;
+    gap: 0.8rem;
+    padding-top: 1rem;
+}
+
+.item-buttons a {
+    flex: 1;
+    text-align: center;
+    padding: 0.7rem 0;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.item-buttons a.trailer {
+    background: #e50914;
+    color: white;
+}
+
+.item-buttons a.imdb {
+    background: #ffcc00;
+    color: #232323;
+}
+
+.item-buttons a:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+footer {
+    background: #232323;
+    color: #888;
+    text-align: center;
+    padding: 1.5rem 0;
+    margin-top: 3rem;
+    font-size: 0.95rem;
+}
+
+/* Tema claro */
+body.light {
+    background: #f5f5f5;
+    color: #333;
+}
+
+body.light .navbar,
+body.light footer {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+body.light .item {
+    background: white;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+body.light .item p {
+    color: #555;
+}
+
+body.light .select {
+    background: #f0f0f0;
+    color: #e6b800;
+}
+
+body.light .search {
+    background: #f0f0f0;
+    color: #333;
+}
+
+body.light h2 {
+    color: #e6b800;
+}
+
+body.light .item h3 {
+    color: #e6b800;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    
+    .controls {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .card-list {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+/* Estilo para os botões de favoritar */
+.favorite-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.favorite-button:hover {
+    transform: scale(1.2);
+}
+
+/* Estilo para os botões gerais */
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.favorites-button {
+    background-color: #ffcccc;
+    color: #ff0000;
+    font-weight: bold;
+}
+
+.favorites-button:hover {
+    background-color: #ff9999;
+}
+
+/* Estilo atualizado para o botão de voltar */
+.back-button {
+    background: none; /* Remove o fundo */
+    border: none; /* Remove a borda */
+    color: #ffd700; /* Texto em amarelo (gold) */
+    font-size: 1.2rem; /* Tamanho do texto */
+    font-weight: bold; /* Texto em negrito */
+    text-decoration: underline; /* Sublinhado */
+    cursor: pointer; /* Cursor de ponteiro */
+    margin-bottom: 15px;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.back-button:hover {
+    color: #ffc107; /* Amarelo mais claro no hover */
+    transform: scale(1.05); /* Leve aumento no tamanho */
+}
+
+.back-button:active {
+    transform: scale(0.95); /* Leve redução no tamanho ao clicar */
+}
+
+/* Estilo para a seta amarela */
+.back-button::before {
+    color: #ffd700; /* Cor da seta em amarelo */
+    font-size: 1.2rem;
+}
+
+/* Estilo para a mensagem de favoritos vazia */
+.favorites-empty-message {
+    text-align: center; /* Centraliza o texto horizontalmente */
+    color: #ffd700; /* Amarelo para combinar com o tema */
+    font-size: 1.2rem; /* Tamanho da fonte */
+    font-weight: bold; /* Negrito */
+    margin-top: 20px; /* Espaçamento superior */
+}
+
+/* Estilo para o botão de assistido */
+.watched-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.watched-button:hover {
+    transform: scale(1.2);
+}
+
+/* Estilo para o botão de assistidos */
+#watched-button {
+    background-color: #f0f0f0; /* Cor de fundo clara */
+    color: #000; /* Cor do texto */
+    border: 1px solid #ccc; /* Borda */
+    border-radius: 5px; /* Bordas arredondadas */
+    padding: 10px 15px; /* Espaçamento interno */
+    font-size: 16px; /* Tamanho da fonte */
+    cursor: pointer; /* Cursor de ponteiro ao passar o mouse */
+    transition: background-color 0.3s ease; /* Transição suave */
+}
+
+/* Efeito ao passar o mouse */
+#watched-button:hover {
+    background-color: #e0e0e0; /* Cor de fundo ao passar o mouse */
+}
+
+/* Estilo para a mensagem de assistidos vazia */
+.watched-empty-message {
+    text-align: center; /* Centraliza o texto horizontalmente */
+    color: #ffd700; /* Amarelo para combinar com o tema */
+    font-size: 1.2rem; /* Tamanho da fonte */
+    font-weight: bold; /* Negrito */
+    margin-top: 20px; /* Espaçamento superior */
+}

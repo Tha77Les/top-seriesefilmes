@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMDb Top 250</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">🎬 Top 250 IMDb</div>
+        <div class="controls">
+            <select id="content-select" class="select">
+                <option value="movies">Filmes</option>
+                <option value="series">Séries</option>
+            </select>
+            <input type="text" id="search-input" class="search" placeholder="Pesquisar filme/série..." />
+            <button id="favorites-button" class="favorites-button" title="Favoritos">❤️ Favoritos</button>
+            <button id="watched-button" class="watched-button" title="Assistidos">👁️ Assistidos</button>
+            <button id="theme-toggle" class="theme-toggle" title="Alternar tema">🌙</button>
+        </div>
+    </nav>
+    <main>
+        <section id="movies" class="content-section" style="display: block;">
+            <h2>Top 250 Filmes</h2>
+            <div id="movies-list" class="card-list"></div>
+        </section>
+        <section id="series" class="content-section" style="display: none;">
+            <h2>Top 250 Séries</h2>
+            <div id="series-list" class="card-list"></div>
+        </section>
+        <section id="favorites" class="content-section" style="display: none;">
+            <button id="back-button" class="back-button">Voltar</button> <!-- Botão de Voltar -->
+            <h2>Favoritos</h2>
+            <div id="favorites-list" class="card-list"></div>
+        </section>
+        <section id="watched" class="content-section" style="display: none;">
+            <button id="back-button-watched" class="back-button">Voltar</button> <!-- Botão de Voltar -->
+            <h2>Assistidos</h2>
+            <div id="watched-list" class="card-list"></div>
+        </section>
+    </main>
+    <footer>
+        <span>Desenvolvido por Thales • Dados via IMDb API</span>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
