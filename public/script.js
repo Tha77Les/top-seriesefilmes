@@ -151,32 +151,53 @@ async function renderFilteredList(listId, data, searchTerm) {
         // Botão de favoritar
         const favoriteButton = document.createElement('button');
         favoriteButton.classList.add('favorite-button');
-        // Só mostra o botão se o item tiver id
-        if (item.id) {
-            favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
-            favoriteButton.addEventListener('click', () => {
+        favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
+        favoriteButton.onclick = () => {
+            // Se estiver na lista de favoritos, remove o card e atualiza listas principais se visíveis
+            if (listId === 'favorites-list') {
+                card.remove();
                 toggleFavorite(item);
-                favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
-            });
-        } else {
-            favoriteButton.innerHTML = '🤍';
-            favoriteButton.disabled = true;
-        }
+                if (favoritesData.length === 0) renderFavorites();
+
+                // Atualiza a lista principal se ela estiver visível
+                if (document.getElementById('movies').style.display === 'block') {
+                    renderFilteredList('movies-list', moviesData, searchInput.value.trim());
+                }
+                if (document.getElementById('series').style.display === 'block') {
+                    renderFilteredList('series-list', seriesData, searchInput.value.trim());
+                }
+                return;
+            }
+            // Fora da lista de favoritos, atualiza o emoji na hora
+            const isFav = favoritesData.some(fav => fav.id === item.id);
+            favoriteButton.innerHTML = isFav ? '🤍' : '❤️';
+            toggleFavorite(item);
+        };
         infoDiv.appendChild(favoriteButton);
 
         // Botão de assistido
         const watchedButton = document.createElement('button');
         watchedButton.classList.add('watched-button');
-        if (item.id) {
-            watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨';
-            watchedButton.addEventListener('click', () => {
+        watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨';
+        watchedButton.onclick = () => {
+            if (listId === 'watched-list') {
+                card.remove();
                 toggleWatched(item);
-                watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨';
-            });
-        } else {
-            watchedButton.innerHTML = '👁‍🗨';
-            watchedButton.disabled = true;
-        }
+                if (watchedData.length === 0) renderWatched();
+
+                // Atualiza a lista principal se ela estiver visível
+                if (document.getElementById('movies').style.display === 'block') {
+                    renderFilteredList('movies-list', moviesData, searchInput.value.trim());
+                }
+                if (document.getElementById('series').style.display === 'block') {
+                    renderFilteredList('series-list', seriesData, searchInput.value.trim());
+                }
+                return;
+            }
+            const isWatched = watchedData.some(watched => watched.id === item.id);
+            watchedButton.innerHTML = isWatched ? '👁‍🗨' : '👁️';
+            toggleWatched(item);
+        };
         infoDiv.appendChild(watchedButton);
 
         // Container de botões
@@ -257,7 +278,7 @@ function toggleFavorite(item) {
         favoritesData.splice(index, 1);
     }
     saveFavoritesToLocalStorage();
-    renderFavorites();
+    renderFavorites(); // Aqui sim, sempre atualiza a lista
 }
 
 // Função para adicionar/remover assistidos
@@ -270,7 +291,30 @@ function toggleWatched(item) {
         watchedData.splice(index, 1);
     }
     saveWatchedToLocalStorage();
-    renderWatched();
+    renderWatched(); // Aqui sim, sempre atualiza a lista
+}
+
+// Função para renderizar a lista de assistidos
+function renderWatched() {
+    const watchedList = document.getElementById('watched-list');
+    const watchedSection = document.getElementById('watched');
+
+    // Remove mensagens anteriores
+    const existingMessage = document.querySelector('.watched-empty-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+
+    watchedList.innerHTML = '';
+
+    if (watchedData.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.textContent = 'Você ainda não marcou nenhum filme/série como assistido.';
+        emptyMessage.classList.add('watched-empty-message');
+        watchedSection.appendChild(emptyMessage);
+    } else {
+        renderFilteredList('watched-list', watchedData, '');
+    }
 }
 
 // DOMContentLoaded
@@ -340,29 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
             favoritesSection.appendChild(emptyMessage);
         } else {
             renderFilteredList('favorites-list', favoritesData, '');
-        }
-    }
-
-    // Função para renderizar a lista de assistidos
-    function renderWatched() {
-        const watchedList = document.getElementById('watched-list');
-        const watchedSection = document.getElementById('watched');
-
-        // Remove mensagens anteriores
-        const existingMessage = document.querySelector('.watched-empty-message');
-        if (existingMessage) {
-            existingMessage.remove();
-        }
-
-        watchedList.innerHTML = '';
-
-        if (watchedData.length === 0) {
-            const emptyMessage = document.createElement('p');
-            emptyMessage.textContent = 'Você ainda não marcou nenhum filme/série como assistido.';
-            emptyMessage.classList.add('watched-empty-message');
-            watchedSection.appendChild(emptyMessage);
-        } else {
-            renderFilteredList('watched-list', watchedData, '');
         }
     }
 
