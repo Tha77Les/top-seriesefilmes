@@ -1,15 +1,6 @@
-const movieUrl = 'https://imdb236.p.rapidapi.com/api/imdb/top250-movies';
-const seriesUrl = 'https://imdb236.p.rapidapi.com/api/imdb/top250-tv';
-const options = {
-    method: 'GET',
-    headers: {
-        'x-rapidapi-key': 'a3a7b03b18mshfedd8b9f4dbcd49p1ef09ejsn6e6fbcef26d2',
-        'x-rapidapi-host': 'imdb236.p.rapidapi.com'
-    }
-};
-
-const tmdbApiKey = '495ba53404be7a82bc494c2b0f3a84a6';
-const tmdbBaseUrl = 'https://api.themoviedb.org/3';
+// Use as rotas do backend (Express) como URLs das APIs
+const movieUrl = '/api/imdb/top250-movies';
+const seriesUrl = '/api/imdb/top250-tv';
 
 // Dicionário de tradução de gêneros
 const genreDictionary = {
@@ -37,7 +28,93 @@ const genreDictionary = {
 
 // Função para traduzir gêneros usando o dicionário
 function traduzirGenerosManualmente(generos) {
-    return generos.map(genre => genreDictionary[genre] || genre); // Retorna o gênero traduzido ou o original se não encontrado
+    return generos.map(genre => genreDictionary[genre] || genre);
+}
+
+// Função para traduzir descrição usando Deep Translate via backend
+async function traduzirDescricaoDeepTranslate(textoIngles) {
+    const url = '/api/translate';
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: textoIngles, source: 'en', target: 'pt' })
+        });
+        const result = await response.json();
+        return result.data.translations.translatedText;
+    } catch (error) {
+        console.error('Erro ao traduzir descrição:', error);
+        return textoIngles;
+    }
+}
+
+// Função para traduzir gêneros usando Deep Translate via backend
+async function traduzirGeneros(generos) {
+    const url = '/api/translate';
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: generos.join(', '), source: 'en', target: 'pt' })
+        });
+        const result = await response.json();
+        return result.data.translations.translatedText.split(', ');
+    } catch (error) {
+        console.error('Erro ao traduzir gêneros:', error);
+        return generos;
+    }
+}
+
+// Função para buscar nome em português na TMDB via backend
+async function buscarNomePortuguesTMDB(nomeIngles, type) {
+    const url = `/api/tmdb/search?type=${type}&query=${encodeURIComponent(nomeIngles)}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+            const result = data.results[0];
+            return {
+                title: result.title || result.name || nomeIngles,
+                description: result.overview || null
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error('Erro ao buscar nome na TMDB:', error);
+        return null;
+    }
+}
+
+// Função para buscar dados da API do IMDb via backend
+async function fetchData(url, listId) {
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Traduzir nomes e gêneros
+        const translatedData = await Promise.all(
+            (data || []).map(async (item) => {
+                const tmdbData = await buscarNomePortuguesTMDB(item.primaryTitle || item.originalTitle, listId === 'movies-list' ? 'movie' : 'tv');
+                const translatedGenres = traduzirGenerosManualmente(item.genres || []);
+                return {
+                    ...item,
+                    primaryTitle: tmdbData?.title || item.primaryTitle,
+                    description: tmdbData?.description || item.description,
+                    genres: translatedGenres
+                };
+            })
+        );
+
+        if (listId === 'movies-list') {
+            moviesData = translatedData;
+        } else if (listId === 'series-list') {
+            seriesData = translatedData;
+        }
+
+        renderFilteredList(listId, translatedData, '');
+    } catch (error) {
+        console.error('Erro ao buscar dados da API IMDb:', error);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -162,127 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Renderiza os itens assistidos usando a lógica de renderFilteredList
             renderFilteredList('watched-list', watchedData, '');
-        }
-    }
-
-    // Função para traduzir descrição usando Deep Translate
-    async function traduzirDescricaoDeepTranslate(textoIngles) {
-        const url = 'https://deep-translate1.p.rapidapi.com/language/translate/v2';
-        const options = {
-            method: 'POST',
-            headers: {
-                'x-rapidapi-key': '598489e565msh1ba3adf7cd376bbp128d77jsn4c7370440cb0',
-                'x-rapidapi-host': 'deep-translate1.p.rapidapi.com',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                q: textoIngles,
-                source: 'en',
-                target: 'pt'
-            })
-        };
-
-        try {
-            const response = await fetch(url, options);
-            const result = await response.json();
-
-            console.log('Descrição traduzida pela API Deep Translate:', result); // Verifique os dados aqui
-
-            return result.data.translations.translatedText;
-        } catch (error) {
-            console.error('Erro ao traduzir descrição:', error);
-            return textoIngles; // Retorna o texto original em caso de erro
-        }
-    }
-
-    // Função para traduzir gêneros usando Deep Translate
-    async function traduzirGeneros(generos) {
-        const url = 'https://deep-translate1.p.rapidapi.com/language/translate/v2';
-        const options = {
-            method: 'POST',
-            headers: {
-                'x-rapidapi-key': '598489e565msh1ba3adf7cd376bbp128d77jsn4c7370440cb0',
-                'x-rapidapi-host': 'deep-translate1.p.rapidapi.com',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                q: generos.join(', '), // Concatena os gêneros em uma string
-                source: 'en',
-                target: 'pt'
-            })
-        };
-
-        try {
-            const response = await fetch(url, options);
-            const result = await response.json();
-            return result.data.translations.translatedText.split(', '); // Retorna os gêneros traduzidos como um array
-        } catch (error) {
-            console.error('Erro ao traduzir gêneros:', error);
-            return generos; // Retorna os gêneros originais em caso de erro
-        }
-    }
-
-    // Função para buscar nome em português na TMDB
-    async function buscarNomePortuguesTMDB(nomeIngles, type) {
-        const url = `https://api.themoviedb.org/3/search/${type}?api_key=${tmdbApiKey}&language=pt-BR&query=${encodeURIComponent(nomeIngles)}`;
-
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-
-            console.log('Dados retornados pela API TMDb:', data); // Verifique os dados aqui
-
-            if (data.results && data.results.length > 0) {
-                const result = data.results[0];
-                return {
-                    title: result.title || result.name || nomeIngles,
-                    description: result.overview || null
-                };
-            }
-            return null; // Não encontrado
-        } catch (error) {
-            console.error('Erro ao buscar nome na TMDB:', error);
-            return null;
-        }
-    }
-
-    // Função para buscar dados da API do IMDb
-    async function fetchData(url, listId) {
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'x-rapidapi-key': '598489e565msh1ba3adf7cd376bbp128d77jsn4c7370440cb0',
-                    'x-rapidapi-host': 'imdb236.p.rapidapi.com'
-                }
-            });
-            const data = await response.json();
-
-            console.log('Estrutura dos dados retornados pela API do IMDb:', data);
-
-            // Traduzir nomes e gêneros
-            const translatedData = await Promise.all(
-                (data || []).map(async (item) => {
-                    const tmdbData = await buscarNomePortuguesTMDB(item.primaryTitle || item.originalTitle, listId === 'movies-list' ? 'movie' : 'tv');
-                    const translatedGenres = traduzirGenerosManualmente(item.genres || []);
-                    return {
-                        ...item,
-                        primaryTitle: tmdbData?.title || item.primaryTitle,
-                        description: tmdbData?.description || item.description,
-                        genres: translatedGenres
-                    };
-                })
-            );
-
-            if (listId === 'movies-list') {
-                moviesData = translatedData;
-            } else if (listId === 'series-list') {
-                seriesData = translatedData;
-            }
-
-            renderFilteredList(listId, translatedData, '');
-        } catch (error) {
-            console.error('Erro ao buscar dados da API IMDb:', error);
         }
     }
 
