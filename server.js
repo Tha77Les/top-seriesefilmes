@@ -18,8 +18,10 @@ app.get('/api/imdb/top250-movies', async (req, res) => {
             }
         });
         const data = await response.json();
+        console.log('Resposta da API IMDb:', data); // Adicione esta linha
         res.json(data);
     } catch (error) {
+        console.error('Erro ao buscar filmes:', error); // Adicione esta linha
         res.status(500).json({ error: 'Erro ao buscar filmes.' });
     }
 });

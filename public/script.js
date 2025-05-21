@@ -1,4 +1,4 @@
-// Use as rotas do backend (Express) como URLs das APIs
+// URLs das APIs do backend
 const movieUrl = '/api/imdb/top250-movies';
 const seriesUrl = '/api/imdb/top250-tv';
 
@@ -85,15 +85,128 @@ async function buscarNomePortuguesTMDB(nomeIngles, type) {
     }
 }
 
+// Função para renderizar a lista filtrada (deve vir antes de qualquer uso!)
+async function renderFilteredList(listId, data, searchTerm) {
+    const list = document.getElementById(listId);
+    list.innerHTML = '';
+    const normalizedSearch = searchTerm.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+    const filteredItems = searchTerm
+        ? data.filter(item => {
+            const titles = [
+                item.primaryTitle,
+                item.originalTitle,
+                item.title,
+                item.l
+            ].filter(Boolean);
+
+            return titles.some(t =>
+                t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(normalizedSearch)
+            );
+        })
+        : data;
+
+    filteredItems.forEach((item) => {
+        const card = document.createElement('div');
+        card.classList.add('item');
+
+        // Imagem
+        const imageUrl = item.primaryImage || 'default-image.jpg';
+        const imageElement = document.createElement('img');
+        imageElement.src = imageUrl;
+        imageElement.alt = item.primaryTitle || item.originalTitle || 'Título desconhecido';
+        card.appendChild(imageElement);
+
+        // Container de informações
+        const infoDiv = document.createElement('div');
+        infoDiv.classList.add('item-info');
+
+        // Título
+        const title = item.primaryTitle || item.originalTitle || 'Título desconhecido';
+        const titleElement = document.createElement('h3');
+        titleElement.textContent = title;
+        infoDiv.appendChild(titleElement);
+
+        // Ano de início e fim
+        const year = item.startYear || 'Ano desconhecido';
+        const endYear = item.endYear ? ` - ${item.endYear}` : '';
+        const yearElement = document.createElement('p');
+        yearElement.classList.add('year');
+        yearElement.textContent = `${year}${endYear}`;
+        infoDiv.appendChild(yearElement);
+
+        // Descrição
+        const description = item.description || 'Descrição não disponível';
+        const descriptionElement = document.createElement('p');
+        descriptionElement.classList.add('description');
+        descriptionElement.textContent = description;
+        infoDiv.appendChild(descriptionElement);
+
+        // Gêneros
+        const genres = item.genres ? item.genres.join(', ') : 'Gêneros não disponíveis';
+        const genresElement = document.createElement('p');
+        genresElement.textContent = `Gêneros: ${genres}`;
+        infoDiv.appendChild(genresElement);
+
+        // Botão de favoritar
+        const favoriteButton = document.createElement('button');
+        favoriteButton.classList.add('favorite-button');
+        favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
+        favoriteButton.addEventListener('click', () => {
+            toggleFavorite(item);
+            favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
+        });
+        infoDiv.appendChild(favoriteButton);
+
+        // Botão de assistido
+        const watchedButton = document.createElement('button');
+        watchedButton.classList.add('watched-button');
+        watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨';
+        watchedButton.addEventListener('click', () => {
+            toggleWatched(item);
+            watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨';
+        });
+        infoDiv.appendChild(watchedButton);
+
+        // Container de botões
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.classList.add('item-buttons');
+
+        // Botão do trailer (se existir)
+        if (item.trailer) {
+            const trailerLink = document.createElement('a');
+            trailerLink.href = item.trailer;
+            trailerLink.textContent = 'Trailer';
+            trailerLink.classList.add('trailer');
+            trailerLink.target = '_blank';
+            buttonsDiv.appendChild(trailerLink);
+        }
+
+        // Botão do IMDb
+        const imdbLink = document.createElement('a');
+        imdbLink.href = item.url || '#';
+        imdbLink.textContent = 'IMDb';
+        imdbLink.classList.add('imdb');
+        imdbLink.target = '_blank';
+        buttonsDiv.appendChild(imdbLink);
+
+        infoDiv.appendChild(buttonsDiv);
+        card.appendChild(infoDiv);
+        list.appendChild(card);
+    });
+}
+
 // Função para buscar dados da API do IMDb via backend
 async function fetchData(url, listId) {
     try {
         const response = await fetch(url);
         const data = await response.json();
 
-        // Traduzir nomes e gêneros
+        // Agora pega o array corretamente
+        const items = Array.isArray(data) ? data : [];
+
         const translatedData = await Promise.all(
-            (data || []).map(async (item) => {
+            items.map(async (item) => {
                 const tmdbData = await buscarNomePortuguesTMDB(item.primaryTitle || item.originalTitle, listId === 'movies-list' ? 'movie' : 'tv');
                 const translatedGenres = traduzirGenerosManualmente(item.genres || []);
                 return {
@@ -117,23 +230,25 @@ async function fetchData(url, listId) {
     }
 }
 
+// Variáveis globais para dados
+let moviesData = [];
+let seriesData = [];
+let favoritesData = [];
+let watchedData = [];
+
+// DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const moviesSection = document.getElementById('movies');
     const seriesSection = document.getElementById('series');
     const favoritesSection = document.getElementById('favorites');
-    const watchedSection = document.getElementById('watched'); // Seção de assistidos
+    const watchedSection = document.getElementById('watched');
     const contentSelect = document.getElementById('content-select');
     const searchInput = document.getElementById('search-input');
-    const favoritesButton = document.getElementById('favorites-button'); // Botão de favoritos
-    const watchedButton = document.getElementById('watched-button'); // Botão de assistidos
-    const backButton = document.getElementById('back-button'); // Botão de Voltar
-    const backButtonWatched = document.getElementById('back-button-watched'); // Botão de voltar dos assistidos
-    const contentSections = document.querySelectorAll('.content-section'); // Todas as seções
-
-    let moviesData = [];
-    let seriesData = [];
-    let favoritesData = [];
-    let watchedData = []; // Lista de itens assistidos
+    const favoritesButton = document.getElementById('favorites-button');
+    const watchedButton = document.getElementById('watched-button');
+    const backButton = document.getElementById('back-button');
+    const backButtonWatched = document.getElementById('back-button-watched');
+    const contentSections = document.querySelectorAll('.content-section');
 
     // Função para salvar os favoritos no Local Storage
     function saveFavoritesToLocalStorage() {
@@ -176,8 +291,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             favoritesData.splice(index, 1);
         }
-        saveFavoritesToLocalStorage(); // Salva os favoritos no Local Storage
-        renderFavorites(); // Atualiza a exibição dos favoritos
+        saveFavoritesToLocalStorage();
+        renderFavorites();
     }
 
     // Função para adicionar/remover assistidos
@@ -188,14 +303,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             watchedData.splice(index, 1);
         }
-        saveWatchedToLocalStorage(); // Salva os assistidos no Local Storage
-        renderWatched(); // Atualiza a exibição dos assistidos
+        saveWatchedToLocalStorage();
+        renderWatched();
     }
 
     // Função para renderizar favoritos
     function renderFavorites() {
         const favoritesList = document.getElementById('favorites-list');
-        const favoritesSection = document.getElementById('favorites'); // Seção de favoritos
+        const favoritesSection = document.getElementById('favorites');
 
         // Remove mensagens anteriores
         const existingMessage = document.querySelector('.favorites-empty-message');
@@ -206,13 +321,11 @@ document.addEventListener('DOMContentLoaded', () => {
         favoritesList.innerHTML = '';
 
         if (favoritesData.length === 0) {
-            // Exibe a mensagem se a lista de favoritos estiver vazia
             const emptyMessage = document.createElement('p');
             emptyMessage.textContent = 'Você ainda não favoritou nenhum filme/série.';
-            emptyMessage.classList.add('favorites-empty-message'); // Adiciona a classe para estilização
-            favoritesSection.appendChild(emptyMessage); // Adiciona a mensagem abaixo do título
+            emptyMessage.classList.add('favorites-empty-message');
+            favoritesSection.appendChild(emptyMessage);
         } else {
-            // Renderiza os itens favoritados
             renderFilteredList('favorites-list', favoritesData, '');
         }
     }
@@ -220,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Função para renderizar a lista de assistidos
     function renderWatched() {
         const watchedList = document.getElementById('watched-list');
-        const watchedSection = document.getElementById('watched'); // Seção de assistidos
+        const watchedSection = document.getElementById('watched');
 
         // Remove mensagens anteriores
         const existingMessage = document.querySelector('.watched-empty-message');
@@ -231,133 +344,20 @@ document.addEventListener('DOMContentLoaded', () => {
         watchedList.innerHTML = '';
 
         if (watchedData.length === 0) {
-            // Exibe a mensagem se a lista de assistidos estiver vazia
             const emptyMessage = document.createElement('p');
             emptyMessage.textContent = 'Você ainda não marcou nenhum filme/série como assistido.';
-            emptyMessage.classList.add('watched-empty-message'); // Adiciona a classe para estilização
-            watchedSection.appendChild(emptyMessage); // Adiciona a mensagem abaixo do título
+            emptyMessage.classList.add('watched-empty-message');
+            watchedSection.appendChild(emptyMessage);
         } else {
-            // Renderiza os itens assistidos usando a lógica de renderFilteredList
             renderFilteredList('watched-list', watchedData, '');
         }
-    }
-
-    // Atualize a função renderFilteredList para incluir os botões de favoritar e "Assistido"
-    async function renderFilteredList(listId, data, searchTerm) {
-        const list = document.getElementById(listId);
-        list.innerHTML = '';
-        const normalizedSearch = searchTerm.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-
-        const filteredItems = searchTerm
-            ? data.filter(item => {
-                const titles = [
-                    item.primaryTitle,
-                    item.originalTitle,
-                    item.title,
-                    item.l
-                ].filter(Boolean);
-
-                return titles.some(t =>
-                    t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(normalizedSearch)
-                );
-            })
-            : data;
-
-        filteredItems.forEach((item) => {
-            const card = document.createElement('div');
-            card.classList.add('item');
-
-            // Imagem
-            const imageUrl = item.primaryImage || 'default-image.jpg';
-            const imageElement = document.createElement('img');
-            imageElement.src = imageUrl;
-            imageElement.alt = item.primaryTitle || item.originalTitle || 'Título desconhecido';
-            card.appendChild(imageElement);
-
-            // Container de informações
-            const infoDiv = document.createElement('div');
-            infoDiv.classList.add('item-info');
-
-            // Título
-            const title = item.primaryTitle || item.originalTitle || 'Título desconhecido';
-            const titleElement = document.createElement('h3');
-            titleElement.textContent = title;
-            infoDiv.appendChild(titleElement);
-
-            // Ano de início e fim
-            const year = item.startYear || 'Ano desconhecido';
-            const endYear = item.endYear ? ` - ${item.endYear}` : '';
-            const yearElement = document.createElement('p');
-            yearElement.classList.add('year');
-            yearElement.textContent = `${year}${endYear}`;
-            infoDiv.appendChild(yearElement);
-
-            // Descrição
-            const description = item.description || 'Descrição não disponível';
-            const descriptionElement = document.createElement('p');
-            descriptionElement.classList.add('description');
-            descriptionElement.textContent = description;
-            infoDiv.appendChild(descriptionElement);
-
-            // Gêneros
-            const genres = item.genres ? item.genres.join(', ') : 'Gêneros não disponíveis';
-            const genresElement = document.createElement('p');
-            genresElement.textContent = `Gêneros: ${genres}`;
-            infoDiv.appendChild(genresElement);
-
-            // Botão de favoritar
-            const favoriteButton = document.createElement('button');
-            favoriteButton.classList.add('favorite-button');
-            favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
-            favoriteButton.addEventListener('click', () => {
-                toggleFavorite(item);
-                favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
-            });
-            infoDiv.appendChild(favoriteButton);
-
-            // Botão de assistido
-            const watchedButton = document.createElement('button');
-            watchedButton.classList.add('watched-button');
-            watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨'; // Ícones diferentes
-            watchedButton.addEventListener('click', () => {
-                toggleWatched(item);
-                watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨'; // Atualiza o ícone
-            });
-            infoDiv.appendChild(watchedButton);
-
-            // Container de botões
-            const buttonsDiv = document.createElement('div');
-            buttonsDiv.classList.add('item-buttons');
-
-            // Botão do trailer (se existir)
-            if (item.trailer) {
-                const trailerLink = document.createElement('a');
-                trailerLink.href = item.trailer;
-                trailerLink.textContent = 'Trailer';
-                trailerLink.classList.add('trailer');
-                trailerLink.target = '_blank';
-                buttonsDiv.appendChild(trailerLink);
-            }
-
-            // Botão do IMDb
-            const imdbLink = document.createElement('a');
-            imdbLink.href = item.url || '#';
-            imdbLink.textContent = 'IMDb';
-            imdbLink.classList.add('imdb');
-            imdbLink.target = '_blank';
-            buttonsDiv.appendChild(imdbLink);
-
-            infoDiv.appendChild(buttonsDiv);
-            card.appendChild(infoDiv);
-            list.appendChild(card);
-        });
     }
 
     // Evento para o botão de favoritos
     favoritesButton.addEventListener('click', () => {
         toggleSection('favorites');
         renderFavorites();
-        searchInput.value = ''; // Limpa o campo de pesquisa
+        searchInput.value = '';
     });
 
     // Evento para o botão de assistidos
@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Evento de clique no botão de voltar dos assistidos
     if (backButtonWatched) {
         backButtonWatched.addEventListener('click', () => {
-            toggleSection('movies'); // Volta para a aba de filmes
+            toggleSection('movies');
         });
     }
 
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderFilteredList('series-list', seriesData, '');
             }
         }
-        searchInput.value = ''; // Limpa o campo de pesquisa
+        searchInput.value = '';
     });
 
     // Pesquisa local nos dados carregados
@@ -432,10 +432,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Carregar os favoritos e assistidos ao carregar a página
-    loadFavoritesFromLocalStorage(); // Carrega os favoritos do Local Storage
-    loadWatchedFromLocalStorage(); // Carrega os assistidos do Local Storage
-    renderFavorites(); // Renderiza os favoritos carregados
-    renderWatched(); // Renderiza os assistidos carregados
+    loadFavoritesFromLocalStorage();
+    loadWatchedFromLocalStorage();
+    renderFavorites();
+    renderWatched();
 
     // Carrega filmes por padrão
     fetchData(movieUrl, 'movies-list');
