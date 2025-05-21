@@ -79,14 +79,19 @@ h2 {
     font-size: 2rem;
 }
 
+/* Exemplo de CSS flex para card-list */
 .card-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 2rem;
-    justify-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    align-items: stretch;
 }
 
 .item {
+    flex: 0 1 250px; /* largura mínima dos cards */
+    box-sizing: border-box;
+    margin-bottom: 16px;
     background: #232323;
     border-radius: 12px;
     overflow: hidden;

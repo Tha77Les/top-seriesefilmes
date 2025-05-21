@@ -151,21 +151,32 @@ async function renderFilteredList(listId, data, searchTerm) {
         // Botão de favoritar
         const favoriteButton = document.createElement('button');
         favoriteButton.classList.add('favorite-button');
-        favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
-        favoriteButton.addEventListener('click', () => {
-            toggleFavorite(item);
+        // Só mostra o botão se o item tiver id
+        if (item.id) {
             favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
-        });
+            favoriteButton.addEventListener('click', () => {
+                toggleFavorite(item);
+                favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
+            });
+        } else {
+            favoriteButton.innerHTML = '🤍';
+            favoriteButton.disabled = true;
+        }
         infoDiv.appendChild(favoriteButton);
 
         // Botão de assistido
         const watchedButton = document.createElement('button');
         watchedButton.classList.add('watched-button');
-        watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨';
-        watchedButton.addEventListener('click', () => {
-            toggleWatched(item);
+        if (item.id) {
             watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨';
-        });
+            watchedButton.addEventListener('click', () => {
+                toggleWatched(item);
+                watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨';
+            });
+        } else {
+            watchedButton.innerHTML = '👁‍🗨';
+            watchedButton.disabled = true;
+        }
         infoDiv.appendChild(watchedButton);
 
         // Container de botões
@@ -236,6 +247,32 @@ let seriesData = [];
 let favoritesData = [];
 let watchedData = [];
 
+// Função para adicionar/remover favoritos
+function toggleFavorite(item) {
+    if (!item.id) return;
+    const index = favoritesData.findIndex(fav => fav.id === item.id);
+    if (index === -1) {
+        favoritesData.push(item);
+    } else {
+        favoritesData.splice(index, 1);
+    }
+    saveFavoritesToLocalStorage();
+    renderFavorites();
+}
+
+// Função para adicionar/remover assistidos
+function toggleWatched(item) {
+    if (!item.id) return;
+    const index = watchedData.findIndex(watched => watched.id === item.id);
+    if (index === -1) {
+        watchedData.push(item);
+    } else {
+        watchedData.splice(index, 1);
+    }
+    saveWatchedToLocalStorage();
+    renderWatched();
+}
+
 // DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const moviesSection = document.getElementById('movies');
@@ -281,30 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
         contentSections.forEach(section => {
             section.style.display = section.id === sectionId ? 'block' : 'none';
         });
-    }
-
-    // Função para adicionar/remover favoritos
-    function toggleFavorite(item) {
-        const index = favoritesData.findIndex(fav => fav.id === item.id);
-        if (index === -1) {
-            favoritesData.push(item);
-        } else {
-            favoritesData.splice(index, 1);
-        }
-        saveFavoritesToLocalStorage();
-        renderFavorites();
-    }
-
-    // Função para adicionar/remover assistidos
-    function toggleWatched(item) {
-        const index = watchedData.findIndex(watched => watched.id === item.id);
-        if (index === -1) {
-            watchedData.push(item);
-        } else {
-            watchedData.splice(index, 1);
-        }
-        saveWatchedToLocalStorage();
-        renderWatched();
     }
 
     // Função para renderizar favoritos
