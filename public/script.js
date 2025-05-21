@@ -367,19 +367,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Evento para o botão de voltar
-    backButton.addEventListener('click', () => {
-        const selectedValue = contentSelect.value;
-        if (selectedValue === 'movies') {
-            toggleSection('movies');
-        } else if (selectedValue === 'series') {
-            toggleSection('series');
-        }
-    });
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            const selectedValue = contentSelect.value;
+            if (selectedValue === 'movies') {
+                toggleSection('movies');
+            } else if (selectedValue === 'series') {
+                toggleSection('series');
+            }
+        });
+    }
 
     // Evento de clique no botão de voltar dos assistidos
-    backButtonWatched.addEventListener('click', () => {
-        toggleSection('movies'); // Volta para a aba de filmes
-    });
+    if (backButtonWatched) {
+        backButtonWatched.addEventListener('click', () => {
+            toggleSection('movies'); // Volta para a aba de filmes
+        });
+    }
 
     // Alterna entre filmes e séries
     contentSelect.addEventListener('change', (event) => {
