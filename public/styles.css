@@ -89,7 +89,6 @@ h2 {
 }
 
 .item {
-    flex: 0 1 250px; /* largura mínima dos cards */
     box-sizing: border-box;
     margin-bottom: 16px;
     background: #232323;
@@ -101,7 +100,7 @@ h2 {
     max-width: 300px;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 870px; /* aumentei mais a altura */
 }
 
 .item:hover {
@@ -111,7 +110,7 @@ h2 {
 
 .item img {
     width: 100%;
-    height: 380px;
+    height: 420px; /* aumentei proporcionalmente */
     object-fit: cover;
     border-bottom: 3px solid #ffcc00;
 }
@@ -128,6 +127,11 @@ h2 {
     font-size: 1.3rem;
     color: #ffcc00;
     text-align: center;
+    height: 3.2rem; /* mantem altura fixa para o título */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* mantém limite de 2 linhas */
+    -webkit-box-orient: vertical;
 }
 
 .item p {
@@ -158,7 +162,7 @@ h2 {
     margin-top: auto;
     display: flex;
     gap: 0.8rem;
-    padding-top: 1rem;
+    padding: 1rem;
 }
 
 .item-buttons a {
