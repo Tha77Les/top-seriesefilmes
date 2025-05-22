@@ -149,55 +149,49 @@ async function renderFilteredList(listId, data, searchTerm) {
         infoDiv.appendChild(genresElement);
 
         // Botão de favoritar
+        const isFavorited = favoritesData.some(fav => fav.id === item.id);
+        if (isFavorited) {
+            card.classList.add('favorited');
+        } else {
+            card.classList.remove('favorited');
+        }
         const favoriteButton = document.createElement('button');
-        favoriteButton.classList.add('favorite-button');
-        favoriteButton.innerHTML = favoritesData.some(fav => fav.id === item.id) ? '❤️' : '🤍';
-        favoriteButton.onclick = () => {
-            // Se estiver na lista de favoritos, remove o card e atualiza listas principais se visíveis
-            if (listId === 'favorites-list') {
-                card.remove();
-                toggleFavorite(item);
-                if (favoritesData.length === 0) renderFavorites();
-
-                // Atualiza a lista principal se ela estiver visível
-                if (document.getElementById('movies').style.display === 'block') {
-                    renderFilteredList('movies-list', moviesData, searchInput.value.trim());
-                }
-                if (document.getElementById('series').style.display === 'block') {
-                    renderFilteredList('series-list', seriesData, searchInput.value.trim());
-                }
-                return;
-            }
-            // Fora da lista de favoritos, atualiza o emoji na hora
-            const isFav = favoritesData.some(fav => fav.id === item.id);
-            favoriteButton.innerHTML = isFav ? '🤍' : '❤️';
+        favoriteButton.classList.add('favorite-button', 'styled-action-btn');
+        if (isFavorited) favoriteButton.classList.add('favorited');
+        favoriteButton.textContent = isFavorited ? '❤️' : '🤍';
+        favoriteButton.addEventListener('click', () => {
             toggleFavorite(item);
-        };
+            const nowFavorited = favoritesData.some(fav => fav.id === item.id);
+            card.classList.toggle('favorited', nowFavorited);
+            favoriteButton.classList.toggle('favorited', nowFavorited);
+            favoriteButton.textContent = nowFavorited ? '❤️' : '🤍';
+            if (document.getElementById('favorites').style.display === 'block') {
+                renderFavorites();
+            }
+        });
         infoDiv.appendChild(favoriteButton);
 
         // Botão de assistido
+        const isWatched = watchedData.some(watched => watched.id === item.id);
+        if (isWatched) {
+            card.classList.add('watched');
+        } else {
+            card.classList.remove('watched');
+        }
         const watchedButton = document.createElement('button');
-        watchedButton.classList.add('watched-button');
-        watchedButton.innerHTML = watchedData.some(watched => watched.id === item.id) ? '👁️' : '👁‍🗨';
-        watchedButton.onclick = () => {
-            if (listId === 'watched-list') {
-                card.remove();
-                toggleWatched(item);
-                if (watchedData.length === 0) renderWatched();
-
-                // Atualiza a lista principal se ela estiver visível
-                if (document.getElementById('movies').style.display === 'block') {
-                    renderFilteredList('movies-list', moviesData, searchInput.value.trim());
-                }
-                if (document.getElementById('series').style.display === 'block') {
-                    renderFilteredList('series-list', seriesData, searchInput.value.trim());
-                }
-                return;
-            }
-            const isWatched = watchedData.some(watched => watched.id === item.id);
-            watchedButton.innerHTML = isWatched ? '👁‍🗨' : '👁️';
+        watchedButton.classList.add('watched-button', 'styled-action-btn');
+        if (isWatched) watchedButton.classList.add('watched');
+        watchedButton.textContent = isWatched ? '👁️' : '👁‍🗨';
+        watchedButton.addEventListener('click', () => {
             toggleWatched(item);
-        };
+            const nowWatched = watchedData.some(watched => watched.id === item.id);
+            card.classList.toggle('watched', nowWatched);
+            watchedButton.classList.toggle('watched', nowWatched);
+            watchedButton.textContent = nowWatched ? '👁️' : '👁‍🗨';
+            if (document.getElementById('watched').style.display === 'block') {
+                renderWatched();
+            }
+        });
         infoDiv.appendChild(watchedButton);
 
         // Container de botões
@@ -278,7 +272,6 @@ function toggleFavorite(item) {
         favoritesData.splice(index, 1);
     }
     saveFavoritesToLocalStorage();
-    renderFavorites(); // Aqui sim, sempre atualiza a lista
 }
 
 // Função para adicionar/remover assistidos
@@ -291,7 +284,6 @@ function toggleWatched(item) {
         watchedData.splice(index, 1);
     }
     saveWatchedToLocalStorage();
-    renderWatched(); // Aqui sim, sempre atualiza a lista
 }
 
 // Função para renderizar a lista de assistidos
@@ -317,6 +309,16 @@ function renderWatched() {
     }
 }
 
+// Função para salvar os favoritos no Local Storage
+function saveFavoritesToLocalStorage() {
+    localStorage.setItem('favorites', JSON.stringify(favoritesData));
+}
+
+// Função para salvar os assistidos no Local Storage
+function saveWatchedToLocalStorage() {
+    localStorage.setItem('watched', JSON.stringify(watchedData));
+}
+
 // DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const moviesSection = document.getElementById('movies');
@@ -331,22 +333,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const backButtonWatched = document.getElementById('back-button-watched');
     const contentSections = document.querySelectorAll('.content-section');
 
-    // Função para salvar os favoritos no Local Storage
-    function saveFavoritesToLocalStorage() {
-        localStorage.setItem('favorites', JSON.stringify(favoritesData));
-    }
-
     // Função para carregar os favoritos do Local Storage
     function loadFavoritesFromLocalStorage() {
         const storedFavorites = localStorage.getItem('favorites');
         if (storedFavorites) {
             favoritesData = JSON.parse(storedFavorites);
         }
-    }
-
-    // Função para salvar os assistidos no Local Storage
-    function saveWatchedToLocalStorage() {
-        localStorage.setItem('watched', JSON.stringify(watchedData));
     }
 
     // Função para carregar os assistidos do Local Storage
