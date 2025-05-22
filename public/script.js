@@ -403,8 +403,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const selectedValue = contentSelect.value;
             if (selectedValue === 'movies') {
                 toggleSection('movies');
+                renderFilteredList('movies-list', moviesData, searchInput.value.trim());
             } else if (selectedValue === 'series') {
                 toggleSection('series');
+                renderFilteredList('series-list', seriesData, searchInput.value.trim());
             }
         });
     }
@@ -412,7 +414,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Evento de clique no botão de voltar dos assistidos
     if (backButtonWatched) {
         backButtonWatched.addEventListener('click', () => {
+            // Sempre volta para filmes, mas re-renderiza para garantir atualização dos emojis
             toggleSection('movies');
+            renderFilteredList('movies-list', moviesData, searchInput.value.trim());
         });
     }
 
