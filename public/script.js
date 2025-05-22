@@ -165,7 +165,10 @@ async function renderFilteredList(listId, data, searchTerm) {
             card.classList.toggle('favorited', nowFavorited);
             favoriteButton.classList.toggle('favorited', nowFavorited);
             favoriteButton.textContent = nowFavorited ? '❤️' : '🤍';
-            if (document.getElementById('favorites').style.display === 'block') {
+
+            console.log('listId:', listId, 'favoritesData:', favoritesData);
+
+            if (listId === 'favorites-list') {
                 renderFavorites();
             }
         });
@@ -188,7 +191,9 @@ async function renderFilteredList(listId, data, searchTerm) {
             card.classList.toggle('watched', nowWatched);
             watchedButton.classList.toggle('watched', nowWatched);
             watchedButton.textContent = nowWatched ? '👁️' : '👁‍🗨';
-            if (document.getElementById('watched').style.display === 'block') {
+
+            // Se estiver na aba de assistidos, re-renderiza a lista para sumir na hora
+            if (listId === 'watched-list') {
                 renderWatched();
             }
         });
@@ -319,6 +324,29 @@ function saveWatchedToLocalStorage() {
     localStorage.setItem('watched', JSON.stringify(watchedData));
 }
 
+// Função para renderizar favoritos (fora do DOMContentLoaded!)
+function renderFavorites() {
+    const favoritesList = document.getElementById('favorites-list');
+    const favoritesSection = document.getElementById('favorites');
+
+    // Remove mensagens anteriores
+    const existingMessage = document.querySelector('.favorites-empty-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+
+    favoritesList.innerHTML = '';
+
+    if (favoritesData.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.textContent = 'Você ainda não favoritou nenhum filme/série.';
+        emptyMessage.classList.add('favorites-empty-message');
+        favoritesSection.appendChild(emptyMessage);
+    } else {
+        renderFilteredList('favorites-list', favoritesData, '');
+    }
+}
+
 // DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const moviesSection = document.getElementById('movies');
@@ -354,29 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
         contentSections.forEach(section => {
             section.style.display = section.id === sectionId ? 'block' : 'none';
         });
-    }
-
-    // Função para renderizar favoritos
-    function renderFavorites() {
-        const favoritesList = document.getElementById('favorites-list');
-        const favoritesSection = document.getElementById('favorites');
-
-        // Remove mensagens anteriores
-        const existingMessage = document.querySelector('.favorites-empty-message');
-        if (existingMessage) {
-            existingMessage.remove();
-        }
-
-        favoritesList.innerHTML = '';
-
-        if (favoritesData.length === 0) {
-            const emptyMessage = document.createElement('p');
-            emptyMessage.textContent = 'Você ainda não favoritou nenhum filme/série.';
-            emptyMessage.classList.add('favorites-empty-message');
-            favoritesSection.appendChild(emptyMessage);
-        } else {
-            renderFilteredList('favorites-list', favoritesData, '');
-        }
     }
 
     // Evento para o botão de favoritos
