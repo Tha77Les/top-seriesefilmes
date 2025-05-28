@@ -354,7 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const favoritesSection = document.getElementById('favorites');
     const watchedSection = document.getElementById('watched');
     const contentSelect = document.getElementById('content-select');
-    const searchInput = document.getElementById('search-input');
     const favoritesButton = document.getElementById('favorites-button');
     const watchedButton = document.getElementById('watched-button');
     const backButton = document.getElementById('back-button');
@@ -381,6 +380,79 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleSection(sectionId) {
         contentSections.forEach(section => {
             section.style.display = section.id === sectionId ? 'block' : 'none';
+        });
+    }
+
+    // Preencher selects de gênero
+    function preencherSelectGenero(selectId) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        // Remove opções antigas (exceto "Todos os gêneros")
+        select.innerHTML = '<option value="">Todos os gêneros</option>';
+        Object.values(genreDictionary).forEach(genero => {
+            const option = document.createElement('option');
+            option.value = genero;
+            option.textContent = genero;
+            select.appendChild(option);
+        });
+    }
+    preencherSelectGenero('movies-genre-select');
+    preencherSelectGenero('series-genre-select');
+
+    // Eventos de filtro de gênero
+    const moviesGenreSelect = document.getElementById('movies-genre-select');
+    const seriesGenreSelect = document.getElementById('series-genre-select');
+
+    if (moviesGenreSelect) {
+        moviesGenreSelect.addEventListener('change', function () {
+            const selectedGenre = this.value;
+            let filtered = moviesData;
+            if (selectedGenre) {
+                filtered = moviesData.filter(item =>
+                    (item.genres || []).includes(selectedGenre)
+                );
+            }
+            renderFilteredList('movies-list', filtered, document.getElementById('search-input').value.trim());
+        });
+    }
+
+    if (seriesGenreSelect) {
+        seriesGenreSelect.addEventListener('change', function () {
+            const selectedGenre = this.value;
+            let filtered = seriesData;
+            if (selectedGenre) {
+                filtered = seriesData.filter(item =>
+                    (item.genres || []).includes(selectedGenre)
+                );
+            }
+            renderFilteredList('series-list', filtered, document.getElementById('search-input').value.trim());
+        });
+    }
+
+    // Atualize o filtro ao pesquisar também
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const query = searchInput.value.trim();
+            if (document.getElementById('movies').style.display === 'block') {
+                const selectedGenre = moviesGenreSelect.value;
+                let filtered = moviesData;
+                if (selectedGenre) {
+                    filtered = moviesData.filter(item =>
+                        (item.genres || []).includes(selectedGenre)
+                    );
+                }
+                renderFilteredList('movies-list', filtered, query);
+            } else if (document.getElementById('series').style.display === 'block') {
+                const selectedGenre = seriesGenreSelect.value;
+                let filtered = seriesData;
+                if (selectedGenre) {
+                    filtered = seriesData.filter(item =>
+                        (item.genres || []).includes(selectedGenre)
+                    );
+                }
+                renderFilteredList('series-list', filtered, query);
+            }
         });
     }
 
@@ -439,20 +511,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         searchInput.value = '';
-    });
-
-    // Pesquisa local nos dados carregados
-    searchInput.addEventListener('input', function () {
-        const query = searchInput.value.trim();
-        if (contentSelect.value === 'movies') {
-            renderFilteredList('movies-list', moviesData, query);
-        } else if (contentSelect.value === 'series') {
-            renderFilteredList('series-list', seriesData, query);
-        } else if (favoritesSection.style.display === 'block') {
-            renderFilteredList('favorites-list', favoritesData, query);
-        } else if (watchedSection.style.display === 'block') {
-            renderFilteredList('watched-list', watchedData, query);
-        }
     });
 
     // Alternância de tema claro/escuro
