@@ -359,6 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backButton = document.getElementById('back-button');
     const backButtonWatched = document.getElementById('back-button-watched');
     const contentSections = document.querySelectorAll('.content-section');
+    const diceButton = document.getElementById('dice-button');
 
     // Função para carregar os favoritos do Local Storage
     function loadFavoritesFromLocalStorage() {
@@ -532,4 +533,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carrega filmes por padrão
     fetchData(movieUrl, 'movies-list');
+
+    function highlightRandomItem() {
+        // Remove destaque anterior de ambos
+        document.querySelectorAll('.item.dice-highlight').forEach(el => el.classList.remove('dice-highlight'));
+
+        // Verifica qual aba está visível
+        const moviesVisible = document.getElementById('movies').style.display === 'block';
+        const seriesVisible = document.getElementById('series').style.display === 'block';
+
+        let cards;
+        if (moviesVisible) {
+            cards = document.querySelectorAll('#movies-list .item');
+        } else if (seriesVisible) {
+            cards = document.querySelectorAll('#series-list .item');
+        } else {
+            return;
+        }
+
+        if (!cards.length) return;
+        const idx = Math.floor(Math.random() * cards.length);
+        const card = cards[idx];
+        card.classList.add('dice-highlight');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    diceButton.addEventListener('click', highlightRandomItem);
 });
